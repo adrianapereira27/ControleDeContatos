@@ -1,6 +1,7 @@
 ﻿using ControleDeContatos.Models;
 using ControleDeContatos.Repositorio;
 using Microsoft.AspNetCore.Mvc;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ControleDeContatos.Controllers
 {
@@ -37,25 +38,63 @@ namespace ControleDeContatos.Controllers
                 
         public IActionResult Apagar(int id)
         {
-            _contatoRepositorio.Apagar(id);
-            return RedirectToAction("Index"); // voltar para a página index
+            try
+            {
+                bool apagado = _contatoRepositorio.Apagar(id);
+                if (apagado)
+                {
+                    TempData["MensagemSucesso"] = "Contato apagado com sucesso";
+                }
+                else
+                {
+                    TempData["MensagemErro"] = "Ops, não conseguimos apagar seu contato!";
+                }                       
+                return RedirectToAction("Index"); // voltar para a página index
+            }
+            catch (Exception erro)
+            {
+                TempData["MensagemErro"] = $"Ops, não conseguimos apagar seu contato, mais detalhes do erro: {erro.Message}";
+                return RedirectToAction("Index"); // voltar para a página index
+            }            
         }
 
         [HttpPost]
         public IActionResult Criar(ContatoModel contato)
         {
-            if (ModelState.IsValid) // se a informação do ModelState é válida (validações dos campos da tela)
+            try
             {
-                _contatoRepositorio.Adicionar(contato);  // adiciona o contato no banco de dados
-                return RedirectToAction("Index"); // voltar para a página index
-            }            
-            return View(contato);  // se não for válida retorna para a view passando o objeto contato
+                if (ModelState.IsValid) // se a informação do ModelState é válida (validações dos campos da tela)
+                {
+                    _contatoRepositorio.Adicionar(contato);  // adiciona o contato no banco de dados
+                    TempData["MensagemSucesso"] = "Contato cadastrado com sucesso";
+                    return RedirectToAction("Index"); // voltar para a página index
+                }                
+                return View(contato);  // se não for válida retorna para a view "Criar" passando o objeto contato
+            }
+            catch (Exception erro)
+            {
+                TempData["MensagemErro"] = $"Ops, não conseguimos cadastrar seu contato, tente novamente, detalhe do erro: {erro.Message}";
+                return RedirectToAction("Index");  // voltar para a página index
+            }
         }
         [HttpPost]
         public IActionResult Alterar(ContatoModel contato)
         {
-            _contatoRepositorio.Atualizar(contato);  // adiciona o contato no banco de dados
-            return RedirectToAction("Index"); // voltar para a página index
+            try
+            {
+                if (ModelState.IsValid) // se a informação do ModelState é válida (validações dos campos da tela)
+                {
+                    _contatoRepositorio.Atualizar(contato);  // adiciona o contato no banco de dados
+                    TempData["MensagemSucesso"] = "Contato alterado com sucesso";
+                    return RedirectToAction("Index"); // voltar para a página index
+                }
+                return View("Editar", contato);  // se não for válida retorna para a view "Editar" passando o objeto contato
+            }
+            catch (Exception erro)
+            {
+                TempData["MensagemErro"] = $"Ops, não conseguimos atualizar seu contato, tente novamente, detalhe do erro: {erro.Message}";
+                return RedirectToAction("Index");  // voltar para a página index
+            }   
         }
     }
 }
